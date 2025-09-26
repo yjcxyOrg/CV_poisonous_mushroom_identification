@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蘑菇毒性识别系统</title>
+    <style>
+        /* 通用样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 容器样式 - 控制页面宽度和居中 */
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        /* 头部标题样式 */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1rem;
+            color: #7f8c8d;
+        }
+
+        /* 上传区域样式 */
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 10px;
+            padding: 60px 20px;
+            text-align: center;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            border-color: #2980b9;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
+        }
+
+        .upload-area.active {
+            border-color: #2ecc71;
+            background-color: rgba(46, 204, 113, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .upload-text h3 {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .upload-text p {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        /* 隐藏原生文件选择框 */
+        #file-input {
+            display: none;
+        }
+
+        /* 图片预览区样式 */
+        .preview-container {
+            display: none;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .remove-img {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .remove-img:hover {
+            background-color: #c0392b;
+        }
+
+        /* 结果显示区样式 */
+        .result-container {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .result-title {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .result-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* 可食用/有毒结果卡片样式区分 */
+        .result-card.edible {
+            border: 2px solid #2ecc71;
+            background-color: rgba(46, 204, 113, 0.05);
+        }
+
+        .result-card.poisonous {
+            border: 2px solid #e74c3c;
+            background-color: rgba(231, 76, 60, 0.05);
+        }
+
+        .result-class {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-class.edible {
+            color: #27ae60;
+        }
+
+        .result-class.poisonous {
+            color: #c0392b;
+        }
+
+        /* 安全提示样式 */
+        .safety-note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        /* 加载中样式 */
+        .loading {
+            display: none;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(52, 152, 219, 0.2);
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        /* 加载动画 */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            color: #3498db;
+        }
+
+        /* 错误提示样式 */
+        .error-container {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面标题 -->
+        <header>
+            <h1>蘑菇毒性识别系统</h1>
+            <p>上传蘑菇图片，快速判断是否有毒（支持拖拽或点击上传）</p>
+        </header>
+
+        <!-- 图片上传区域 -->
+        <div class="upload-area" id="upload-area">
+            <input type="file" id="file-input" accept="image/jpeg, image/png, image/jpg">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">
+                <h3>拖入图片到这里，或点击选择图片</h3>
+                <p>支持 JPG、PNG 格式，建议图片清晰且蘑菇主体完整</p>
+            </div>
+        </div>
+
+        <!-- 图片预览区域 -->
+        <div class="preview-container" id="preview-container">
+            <img src="" alt="预览图片" class="preview-img" id="preview-img">
+            <button class="remove-img" id="remove-img">移除图片</button>
+        </div>
+
+        <!-- 加载中提示 -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">正在分析图片...请稍候</div>
+        </div>
+
+        <!-- 错误提示区域 -->
+        <div class="error-container" id="error-container">
+            <p id="error-message">上传失败，请重试</p>
+        </div>
+
+        <!-- 识别结果区域 -->
+        <div class="result-container" id="result-container">
+            <div class="result-title">识别结果</div>
+            <div class="result-card" id="result-card">
+                <div class="result-class" id="result-class">可食用</div>
+            </div>
+            <div class="safety-note">
+                ⚠️ 安全提示：该结果仅为模型辅助判断，实际食用前请务必通过专业渠道鉴定，避免误食有毒蘑菇！
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取页面元素
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const previewImg = document.getElementById('preview-img');
+        const removeImgBtn = document.getElementById('remove-img');
+        const loading = document.getElementById('loading');
+        const errorContainer = document.getElementById('error-container');
+        const errorMessage = document.getElementById('error-message');
+        const resultContainer = document.getElementById('result-container');
+        const resultCard = document.getElementById('result-card');
+        const resultClass = document.getElementById('result-class');
+
+        // 后端接口地址（本地服务）
+        const API_URL = 'http://127.0.0.1:5000/predict';
+
+        // 点击上传区域，触发原生文件选择
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 拖拽相关事件 - 视觉反馈
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadArea.classList.add('active');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadArea.classList.remove('active');
+            });
+        });
+
+        // 拖拽上传文件
+        uploadArea.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // 选择文件后处理
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // 移除图片按钮事件
+        removeImgBtn.addEventListener('click', () => {
+            resetState();
+            fileInput.value = '';
+        });
+
+        // 处理上传的图片文件
+        function handleFile(file) {
+            // 验证文件类型
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                showError('请上传 JPG 或 PNG 格式的图片');
+                return;
+            }
+
+            // 验证文件大小（不超过5MB）
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showError('图片大小不能超过 5MB，请选择更小的图片');
+                return;
+            }
+
+            // 显示图片预览
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                showPreview();
+                hideError();
+                predictMushroom(file); // 调用接口预测
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 调用后端接口，预测蘑菇毒性
+        async function predictMushroom(file) {
+            showLoading();
+            hideResult();
+
+            try {
+                // 构造表单数据
+                const formData = new FormData();
+                formData.append('image', file);
+
+                // 发送请求
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`接口请求失败：${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                // 处理预测结果
+                if (result.status === 'success') {
+                    const className = result.result.class;
+
+                    // 设置结果样式和文本
+                    if (className === '可食用') {
+                        resultCard.className = 'result-card edible';
+                        resultClass.className = 'result-class edible';
+                    } else {
+                        resultCard.className = 'result-card poisonous';
+                        resultClass.className = 'result-class poisonous';
+                    }
+                    resultClass.textContent = className;
+
+                    showResult();
+                } else {
+                    throw new Error(result.error || '预测失败，请重试');
+                }
+
+            } catch (error) {
+                showError(error.message || '网络异常，请检查后端服务是否正常启动');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 工具函数：显示预览区
+        function showPreview() {
+            previewContainer.style.display = 'block';
+        }
+
+        // 工具函数：隐藏预览区
+        function hidePreview() {
+            previewContainer.style.display = 'none';
+            previewImg.src = '';
+        }
+
+        // 工具函数：显示加载状态
+        function showLoading() {
+            loading.style.display = 'block';
+        }
+
+        // 工具函数：隐藏加载状态
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+        // 工具函数：显示错误提示
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorContainer.style.display = 'block';
+            hidePreview();
+            hideResult();
+            hideLoading();
+        }
+
+        // 工具函数：隐藏错误提示
+        function hideError() {
+            errorContainer.style.display = 'none';
+        }
+
+        // 工具函数：显示结果区
+        function showResult() {
+            resultContainer.style.display = 'block';
+        }
+
+        // 工具函数：隐藏结果区
+        function hideResult() {
+            resultContainer.style.display = 'none';
+        }
+
+        // 工具函数：重置所有状态
+        function resetState() {
+            hidePreview();
+            hideLoading();
+            hideError();
+            hideResult();
+        }
+    </script>
+</body>
+</html>
