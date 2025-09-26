@@ -1,1 +1,1 @@
-请解压edible和poisonous文件夹里的压缩包到其文件夹（dataset）
+复现请解压edible和poisonous文件夹里的压缩包到其文件夹（dataset），运行直接启动backend的app.py，再启动frontend网页即可
